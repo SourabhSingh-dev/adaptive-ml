@@ -2,12 +2,14 @@ import pandas as pd
 import numpy as np
 
 def main():
-    print("1. Loading model predictions...")
-    df = pd.read_csv("../data/classical_model_predictions.csv")
+    print("1. Loading all model predictions...")
+    classical_Df = pd.read_csv("../data/classical_model_predictions.csv")
+    deep_df = pd.read_csv("../data/deep_model_predictions.csv")
 
+    df = pd.concat([classical_Df,deep_df],ignore_index=True)
+
+    print("2. Building the Error Matrix...")
     df["is_correct"] = (df['prediction'] == df['true_label']).astype(int)
-
-    print("2. Building the Error Matrix...") 
     error_matrix = df.pivot(index='sample_id',columns='model_name',values='is_correct')
 
     print("\n--- Individual Model Accuracy ---")
@@ -20,11 +22,12 @@ def main():
 
     print("\n4. Analyzing Disagreement...")
     all_wrong = (error_matrix.sum(axis=1) == 0).sum()
-    all_right = (error_matrix.sum(axis=1) == 3).sum()
-    disagreement = len(error_matrix) - all_wrong - all_right
+    all_right = (error_matrix.sum(axis=1) == 5).sum()
+    disagreement = len(error_matrix) - all_right - all_wrong
+
     print(f"Total Test Samples: {len(error_matrix)}")
-    print(f"All Models Wrong: {all_wrong}")
-    print(f"All Models Right: {all_right}")
+    print(f"All Models Wrong (Irreducible Error): {all_wrong}")
+    print(f"All Models Right (Easy Samples): {all_right}")
     print(f"Disagreement (Router Opportunity): {disagreement} samples")
 
 if __name__ == "__main__":

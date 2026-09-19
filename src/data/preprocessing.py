@@ -1,6 +1,8 @@
 import polars as pl
 import numpy as np
 import pandas as pd
+import os
+from sklearn.preprocessing import LabelEncoder
 
 def create_sliding_windows(df, window_size=128, step_size=64):
     """
@@ -53,3 +55,31 @@ def extract_tabular_features(X_tensor):
     col_names = [f"{ch}_{st}" for st in stats for ch in channels]
     
     return pd.DataFrame(X_tabular, columns=col_names)
+
+if __name__ == "__main__":
+    raw_data_path = "data/raw/Phones_accelerometer.csv"
+    processed_dir = "data/processed"
+    os.makedirs(processed_dir,exist_ok=True)
+    save_path = os.path.join(processed_dir,'hhar_windows.npz')
+
+    print("Loading raw data...")
+    df = pl.read_csv(raw_data_path)
+
+    print("Slicing continuous data into overlapping windows...")
+    X_list,y_list,meta_list = create_sliding_windows(df)
+
+    print("Encoding categorical labels...")
+    encoder = LabelEncoder()
+    y_encoded = encoder.fit_transform(y_list)
+    print(f"Classes mapped: {encoder.classes_}")
+
+    print("Saving processed tensors to disk...")
+    np.savez_compressed(
+        save_path,
+        X= X_list,
+        y=y_encoded,
+        meta_list = meta_list,
+        classes = encoder.classes_
+    )
+    print(f"Success! Processed data saved to {save_path}")
+    print(f"Total windows generated: {len(X_list)}")

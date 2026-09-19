@@ -1,6 +1,8 @@
 import polars as pl
 import numpy as np
 import pandas as pd
+import joblib
+import os
 from sklearn.model_selection import GroupShuffleSplit
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
@@ -74,6 +76,16 @@ def main():
     results_df = pd.DataFrame(results_list)
     results_df.to_csv("../data/classical_model_predictions.csv", index=False)
     print("Done! Saved to data/classical_model_predictions.csv")
+
+    print("\n7. Saving trained classical artifacts...")
+    
+    os.makedirs("../models", exist_ok=True)
+    
+    joblib.dump(models["Logistic_Regression"], "../models/logistic_regression.joblib")
+    joblib.dump(models["Random_Forest"], "../models/random_forest.joblib")
+    joblib.dump(models["XGBoost"], "../models/XGBoost.joblib")
+    
+    print("Models saved successfully!")
 
 if __name__ == "__main__":
     main()
